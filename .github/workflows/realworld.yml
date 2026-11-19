@@ -1,0 +1,25 @@
+name: Windows real-stream test
+on:
+  workflow_dispatch:
+    inputs:
+      twitch_vod: { description: "Twitch VOD/highlight URL", default: "https://www.twitch.tv/videos/2789851432" }
+      youtube: { description: "YouTube video URL", default: "https://www.youtube.com/watch?v=ilURXQ-4VPg" }
+      live: { description: "Twitch channel that is LIVE right now", default: "https://www.twitch.tv/xqc" }
+jobs:
+  real:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup (setup.ps1, same as users run)
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File skills\gta6-clipper\scripts\setup.ps1
+      - name: Real streams (discover, live clip, Twitch VOD, YouTube VOD)
+        shell: powershell
+        run: |
+          $cfg = Get-Content skills\gta6-clipper\config.json | ConvertFrom-Json
+          foreach ($d in $cfg.path_dirs) { $env:Path = "$d;$env:Path" }
+          skills\gta6-clipper\.venv\Scripts\python.exe tests\realworld.py --twitch-vod "${{ inputs.twitch_vod }}" --youtube "${{ inputs.youtube }}" --live "${{ inputs.live }}" --out realworld-out
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: realworld-clips, path: realworld-out }
