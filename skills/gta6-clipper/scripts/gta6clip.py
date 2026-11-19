@@ -302,6 +302,12 @@ def prep_one(url, cookies, force=False):
         if fc:
             fc.result()
     src = next((p for p in rd.glob("audio.*") if p.suffix not in (".part", ".ytdl", ".wav")), None)
+    if not src:  # Twitch highlights / edited VODs break yt-dlp's own HLS downloader: retry through ffmpeg
+        for p in rd.glob("audio.*"):
+            p.unlink(missing_ok=True)
+        ra = run(YTDLP + cookie_args(cookies) + ["--no-playlist", "--downloader", "m3u8:ffmpeg", "-f",
+                                                 "bestaudio/audio_only/worst", "-o", str(rd / "audio.%(ext)s"), url])
+        src = next((p for p in rd.glob("audio.*") if p.suffix not in (".part", ".ytdl", ".wav")), None)
     if not src:
         raise RuntimeError(f"audio download failed: {ra.stderr[-300:]}")
     wav = rd / "audio.wav"
