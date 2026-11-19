@@ -207,7 +207,8 @@ class Daemon:
         while (k + 1) * W <= covered:
             a, b = max(0, k * W - 45), (k + 1) * W  # 45 s overlap so nothing is cut in half
             chat = self.chat_spikes(a, b)
-            lines = [f"# LIVE {self.cfg.get('streamer')}: {self.cfg.get('title')}",
+            lines = [g.UNTRUSTED_TRANSCRIPT_NOTICE,
+                     f"# LIVE {self.cfg.get('streamer')}: {self.cfg.get('title')}",
                      f"Window {k + 1}  ({g.hms(a)} to {g.hms(b)} of the recording)",
                      "Markers: LOUD(+dB over normal) = streamer got loud. CHAT xN = chat moving N times faster than normal.", ""]
             for s in self.transcript:
@@ -226,8 +227,10 @@ class Daemon:
         if covered - k * W > 60:  # stream ended mid-window: write the partial one
             self.cfg["window_min_override"] = True
             a, b = max(0, k * W - 45), covered
-            lines = [f"# LIVE {self.cfg.get('streamer')}: {self.cfg.get('title')}",
-                     f"Window {k + 1} (final, {g.hms(a)} to {g.hms(b)})", ""]
+            lines = [g.UNTRUSTED_TRANSCRIPT_NOTICE,
+                     f"# LIVE {self.cfg.get('streamer')}: {self.cfg.get('title')}",
+                     f"Window {k + 1} (final, {g.hms(a)} to {g.hms(b)})",
+                     ""]
             lines += [f"[{g.hms(s['start'])}] {s['text']}" for s in self.transcript if a < s["end"] and s["start"] < b]
             (self.rd / "windows" / f"window_{k + 1:03d}.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
             self.save_state(windows=k + 1)

@@ -11,31 +11,31 @@ Every clip comes out 1080x1920: facecam on top, gameplay below, a hook title, wo
 
 ## Install
 
-### Option A: one command (easiest)
+### Option A: install from a reviewed checkout
 
 1. Click Start, type **PowerShell**, open it.
-2. Paste this and press Enter:
+2. Clone the repository, inspect the files, then run the installer from that checkout:
 
 ```powershell
-irm https://raw.githubusercontent.com/vossashtonai/gta6-clipper-windows/main/install.ps1 | iex
+git clone https://github.com/vossashtonai/gta6-clipper-windows.git "$env:TEMP\gta6-clipper-windows"
+Set-Location "$env:TEMP\gta6-clipper-windows"
+Get-Content .\install.ps1
+Get-Content .\skills\gta6-clipper\scripts\setup.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-3. Wait for **READY** (first time takes 5 to 10 minutes, it downloads about 800 MB).
+3. Wait for **READY** (first time takes 5 to 10 minutes).
 4. Close and reopen Claude Code, then say **clip this stream** `<link>`.
 
-PowerShell is already on every Windows 10 and 11 PC, nothing to install. If you see red text, copy everything
-it printed and paste it into Claude Code: it will fix it for you.
+The installer copies the reviewed checkout. Setup uses Windows Package Manager and a hash-locked Python
+requirements file. Review `setup.ps1` and `requirements.lock` before running it.
 
 ### Option B: paste this into Claude Code
 
 ```text
-Install the GTA 6 Clipper for Windows from https://github.com/vossashtonai/gta6-clipper-windows.
-Clone the repo to a temporary folder, then copy BOTH folders inside its skills/ folder
-(gta6-clipper and gta6-live-clipper) into my Claude skills folder (%USERPROFILE%\.claude\skills\)
-so they sit side by side.
-Then run: powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.claude\skills\gta6-clipper\scripts\setup.ps1"
-(use a 10 minute timeout, the first run downloads about 800 MB).
-Tell me what it installed and whether it says READY. Then remind me to restart Claude Code.
+Clone https://github.com/vossashtonai/gta6-clipper-windows to a temporary folder.
+Review the installer and setup scripts before running them. Run install.ps1 from the checkout.
+Tell me what setup installed and whether it says READY. Then remind me to restart Claude Code.
 ```
 
 ### Option C: as a Claude Code plugin
@@ -49,18 +49,19 @@ In Claude Code:
 
 Then say **set up the GTA 6 clipper**.
 
+Review the plugin source before setup; plugin installation fetches skill files directly from GitHub.
+
 ### Option D: by hand (PowerShell)
 
 ```powershell
 git clone https://github.com/vossashtonai/gta6-clipper-windows.git $env:TEMP\gta6-clipper-windows
-New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills" | Out-Null
-Copy-Item -Recurse -Force "$env:TEMP\gta6-clipper-windows\skills\*" "$env:USERPROFILE\.claude\skills\"
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\.claude\skills\gta6-clipper\scripts\setup.ps1"
+Set-Location $env:TEMP\gta6-clipper-windows
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-Setup checks what your PC needs and installs what's missing, no admin rights needed: FFmpeg, Deno, uv,
-a Python environment (yt-dlp, faster-whisper, OpenCV, Pillow) and the Whisper speech model (~480 MB).
-Re-run it any time downloads start failing; it updates yt-dlp.
+Setup checks what your PC needs and installs what's missing through winget and a hash-locked Python
+requirements file: FFmpeg, Deno, uv, the Python environment, and pinned Whisper/YuNet models.
+Re-run it if setup reports missing dependencies.
 
 You need [Claude Code for Windows](https://docs.claude.com/en/docs/claude-code/setup) (it uses Git for Windows,
 which also gives you `git` for the clone).
