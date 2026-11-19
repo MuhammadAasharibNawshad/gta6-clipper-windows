@@ -93,7 +93,10 @@ if ($uv) { Ok "uv" } else { Fail "uv (https://docs.astral.sh/uv/, then re-run)" 
 # 4. Python environment: yt-dlp (always latest), faster-whisper (speech to text), OpenCV (facecam), Pillow (captions)
 $Py = Join-Path $Venv "Scripts\python.exe"
 if ($uv) {
-  if (-not (Test-Path $Py)) { Inst "Python 3.12 environment"; Run-Quiet $uv @("venv", "--python", "3.12", $Venv) | Out-Null }
+  # ARM laptops (Snapdragon): the speech + video libraries only ship for x64, so use x64 Python (runs emulated)
+  $PyVer = "3.12"
+  if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64" -or $env:PROCESSOR_ARCHITEW6432 -eq "ARM64") { $PyVer = "cpython-3.12-windows-x86_64-none"; Write-Host "  [info]    ARM PC: using x64 Python" }
+  if (-not (Test-Path $Py)) { Inst "Python 3.12 environment"; Run-Quiet $uv @("venv", "--python", $PyVer, $Venv) | Out-Null }
   Inst "Python packages (first run downloads ~150 MB)"
   $code = Run-Quiet $uv @("pip", "install", "--python", $Py, "-q", "-U", "yt-dlp[default]", "faster-whisper", "opencv-python-headless", "pillow", "numpy")
   if ($code -eq 0) { Ok "Python packages (yt-dlp, faster-whisper, opencv, pillow, numpy)" } else { Fail "Python packages" }

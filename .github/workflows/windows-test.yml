@@ -6,12 +6,19 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Setup (setup.ps1, same as users run)
-        shell: powershell
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File skills\gta6-clipper\scripts\setup.ps1
-      - name: Smoke test (prep, render, live start/status/clip/stop)
+      - name: Install exactly like a viewer (install.ps1 -> %USERPROFILE%\.claude\skills -> setup.ps1)
         shell: powershell
         run: |
-          $cfg = Get-Content skills\gta6-clipper\config.json | ConvertFrom-Json
-          foreach ($d in $cfg.path_dirs) { $env:Path = "$d;$env:Path" }
-          skills\gta6-clipper\.venv\Scripts\python.exe tests\smoke.py
+          # simulate a viewer who installed the Mac version first
+          New-Item -ItemType Directory -Force "$env:USERPROFILE\.claude\skills\gta6-clipper\scripts" | Out-Null
+          Set-Content "$env:USERPROFILE\.claude\skills\gta6-clipper\scripts\setup.sh" "echo Mac only for now."
+          $env:GTA6_INSTALL_SRC = (Get-Location).Path
+          Get-Content install.ps1 -Raw | Invoke-Expression
+          if (-not (Test-Path "$env:USERPROFILE\.claude\skills\gta6-clipper\.ready")) { throw "install did not finish" }
+          if (-not (Test-Path "$env:USERPROFILE\.claude\skills\gta6-live-clipper\scripts\live.py")) { throw "live skill missing" }
+          if (Test-Path "$env:USERPROFILE\.claude\skills\gta6-clipper\scripts\setup.sh") { throw "old Mac setup.sh left behind" }
+      - name: Smoke test on the installed skills (prep, render, live start/status/clip/stop)
+        shell: powershell
+        run: |
+          $env:GTA6_SKILLS_DIR = "$env:USERPROFILE\.claude\skills"
+          & "$env:USERPROFILE\.claude\skills\gta6-clipper\.venv\Scripts\python.exe" tests\smoke.py

@@ -10,7 +10,8 @@ import http.server, json, os, shutil, subprocess, sys, tempfile, threading, time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-VOD_DIR, LIVE_DIR = ROOT / "skills" / "gta6-clipper", ROOT / "skills" / "gta6-live-clipper"
+SK = Path(os.environ.get("GTA6_SKILLS_DIR", ROOT / "skills"))  # point at %USERPROFILE%\\.claude\\skills to test an install
+VOD_DIR, LIVE_DIR = SK / "gta6-clipper", SK / "gta6-live-clipper"
 TMP = Path(tempfile.mkdtemp(prefix="gta6-smoke-"))
 os.environ["GTA6_CLIPS_DIR"] = str(TMP / "clips")
 os.environ["GTA6_LIVE_DIR"] = str(TMP / "live")

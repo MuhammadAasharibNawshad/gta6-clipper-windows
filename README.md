@@ -11,7 +11,22 @@ Every clip comes out 1080x1920: facecam on top, gameplay below, a hook title, wo
 
 ## Install
 
-### Option A: paste this into Claude Code (easiest)
+### Option A: one command (easiest)
+
+1. Click Start, type **PowerShell**, open it.
+2. Paste this and press Enter:
+
+```powershell
+irm https://raw.githubusercontent.com/vossashtonai/gta6-clipper-windows/main/install.ps1 | iex
+```
+
+3. Wait for **READY** (first time takes 5 to 10 minutes, it downloads about 800 MB).
+4. Close and reopen Claude Code, then say **clip this stream** `<link>`.
+
+PowerShell is already on every Windows 10 and 11 PC, nothing to install. If you see red text, copy everything
+it printed and paste it into Claude Code: it will fix it for you.
+
+### Option B: paste this into Claude Code
 
 ```text
 Install the GTA 6 Clipper for Windows from https://github.com/vossashtonai/gta6-clipper-windows.
@@ -23,7 +38,7 @@ Then run: powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.cl
 Tell me what it installed and whether it says READY. Then remind me to restart Claude Code.
 ```
 
-### Option B: as a Claude Code plugin
+### Option C: as a Claude Code plugin
 
 In Claude Code:
 
@@ -34,7 +49,7 @@ In Claude Code:
 
 Then say **set up the GTA 6 clipper**.
 
-### Option C: by hand (PowerShell)
+### Option D: by hand (PowerShell)
 
 ```powershell
 git clone https://github.com/vossashtonai/gta6-clipper-windows.git $env:TEMP\gta6-clipper-windows
@@ -58,7 +73,7 @@ Open Claude Code and say:
 - **find me today's biggest GTA 6 streams and clip them**
 - **live clip** `<link>` (for a stream that's live right now)
 
-Clips land in `GTA6-Clips` in your user folder (`C:\\Users\\<you>\\GTA6-Clips`). Each one has an `.mp4` and a `.txt` with the title, caption and hashtags.
+Clips land in `GTA6-Clips` in your user folder (`C:\Users\<you>\GTA6-Clips`). Each one has an `.mp4` and a `.txt` with the title, caption and hashtags.
 
 ## How it works
 
@@ -84,6 +99,9 @@ Picking (step 4) is the only part that uses AI. Everything else runs on your PC.
 The free model is slower and its picks are rougher than Claude's. Expect some back and forth.
 
 ## Good to know
+
+- Installed the Mac version by mistake (it says "Mac only")? Just run the one command above: it replaces it.
+- Use Claude Code for Windows itself (the desktop app or `claude` in PowerShell / Git Bash), not Claude Code inside WSL.
 
 - Age-restricted YouTube streams and Kick need your browser login. Tell Claude to use `--cookies firefox`. Chrome and Edge lock their cookies on Windows, so use Firefox or an exported cookies.txt.
 - YouTube streams that are still live can be clipped by the finished-stream skill once the replay is up. Twitch past broadcasts work while the stream is still going.
