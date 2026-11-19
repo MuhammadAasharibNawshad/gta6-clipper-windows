@@ -24,6 +24,17 @@ function Find-Exe($name, $extraDirs) {
   if ($c) { return $c.Source }
   return $null
 }
+# Run a native tool quietly. (PowerShell 5.1 turns any stderr text into an error when you use 2>&1,
+# and uv/pip print normal progress to stderr, so capture output to files instead.) Returns the exit code.
+function Run-Quiet($exe, [string[]]$argv) {
+  $o = [IO.Path]::GetTempFileName(); $e = [IO.Path]::GetTempFileName()
+  $line = ($argv | ForEach-Object { '"' + ($_ -replace '"', '\"') + '"' }) -join ' '
+  $p = Start-Process -FilePath $exe -ArgumentList $line -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError $e
+  $code = $p.ExitCode
+  if ($code -ne 0) { Get-Content $e -Tail 8 | ForEach-Object { Write-Host "            $_" } }
+  Remove-Item $o, $e -Force -ErrorAction SilentlyContinue
+  return $code
+}
 $HasWinget = [bool](Get-Command winget -ErrorAction SilentlyContinue)
 
 Write-Host "GTA 6 Clipper setup (Windows)"
@@ -34,7 +45,7 @@ $ffDirs = @((Join-Path $Bin "ffmpeg\bin"))
 $ff = Find-Exe "ffmpeg" $ffDirs
 if (-not $ff -and $HasWinget) {
   Inst "FFmpeg (winget)"
-  winget install --id Gyan.FFmpeg -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
+  Run-Quiet "winget" @("install", "--id", "Gyan.FFmpeg", "-e", "--silent", "--accept-source-agreements", "--accept-package-agreements") | Out-Null
   Refresh-Path; $ff = Find-Exe "ffmpeg" $ffDirs
 }
 if (-not $ff) {
@@ -63,7 +74,7 @@ if (-not $deno) {
   try { Invoke-RestMethod https://deno.land/install.ps1 | Invoke-Expression | Out-Null } catch { }
   Refresh-Path; $deno = Find-Exe "deno" $denoDirs
   if (-not $deno -and $HasWinget) {
-    winget install --id DenoLand.Deno -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
+    Run-Quiet "winget" @("install", "--id", "DenoLand.Deno", "-e", "--silent", "--accept-source-agreements", "--accept-package-agreements") | Out-Null
     Refresh-Path; $deno = Find-Exe "deno" $denoDirs
   }
 }
@@ -82,18 +93,18 @@ if ($uv) { Ok "uv" } else { Fail "uv (https://docs.astral.sh/uv/, then re-run)" 
 # 4. Python environment: yt-dlp (always latest), faster-whisper (speech to text), OpenCV (facecam), Pillow (captions)
 $Py = Join-Path $Venv "Scripts\python.exe"
 if ($uv) {
-  if (-not (Test-Path $Py)) { Inst "Python 3.12 environment"; & $uv venv --python 3.12 $Venv 2>&1 | Out-Null }
+  if (-not (Test-Path $Py)) { Inst "Python 3.12 environment"; Run-Quiet $uv @("venv", "--python", "3.12", $Venv) | Out-Null }
   Inst "Python packages (first run downloads ~150 MB)"
-  & $uv pip install --python $Py -q -U "yt-dlp[default]" faster-whisper opencv-python-headless pillow numpy 2>&1 | Out-Null
-  if ($LASTEXITCODE -eq 0) { Ok "Python packages (yt-dlp, faster-whisper, opencv, pillow, numpy)" } else { Fail "Python packages" }
+  $code = Run-Quiet $uv @("pip", "install", "--python", $Py, "-q", "-U", "yt-dlp[default]", "faster-whisper", "opencv-python-headless", "pillow", "numpy")
+  if ($code -eq 0) { Ok "Python packages (yt-dlp, faster-whisper, opencv, pillow, numpy)" } else { Fail "Python packages" }
 }
 
 # 5. Whisper model (speech -> text, runs on this PC). Downloaded once (~480 MB).
 $WhisperDir = Join-Path $Models "whisper"
 if (Test-Path $Py) {
   Inst "Whisper small.en model (skips if already downloaded)"
-  & $Py -c "from faster_whisper import WhisperModel; WhisperModel('small.en', device='cpu', compute_type='int8', download_root=r'$WhisperDir')" 2>&1 | Out-Null
-  if ($LASTEXITCODE -eq 0) { Ok "Whisper model" } else { Fail "Whisper model (check your internet and re-run)" }
+  $code = Run-Quiet $Py @("-c", "from faster_whisper import WhisperModel; WhisperModel('small.en', device='cpu', compute_type='int8', download_root=r'$WhisperDir')")
+  if ($code -eq 0) { Ok "Whisper model" } else { Fail "Whisper model (check your internet and re-run)" }
 }
 
 # 6. Face detector (YuNet, ~230 KB) used to find the facecam box
