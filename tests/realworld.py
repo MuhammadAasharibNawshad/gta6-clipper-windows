@@ -17,6 +17,8 @@ TMP = Path(tempfile.mkdtemp(prefix="gta6-real-"))
 os.environ["GTA6_CLIPS_DIR"] = str(TMP / "clips")
 os.environ["GTA6_LIVE_DIR"] = str(TMP / "live")
 PY = sys.executable
+for _st in (sys.stdout, sys.stderr):
+    _st.reconfigure(encoding="utf-8", errors="replace")
 results = {}
 
 
