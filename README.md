@@ -1,6 +1,6 @@
 # GTA 6 Clipper (Windows)
 
-Two free Claude Code skills that turn GTA 6 streams into ready-to-post vertical clips.
+Two Claude Code skills and a standalone local-Ollama CLI for turning GTA 6 streams into ready-to-post clips.
 
 - **gta6-clipper** clips a stream that has finished. Give it a YouTube, Twitch or Kick link, or nothing and it finds today's biggest GTA 6 streams.
 - **gta6-live-clipper** clips a stream while it's still live. A clip is ready about 5 to 8 minutes after the moment happens.
@@ -63,8 +63,8 @@ Setup checks what your PC needs and installs what's missing through winget and a
 requirements file: FFmpeg, Deno, uv, the Python environment, and pinned Whisper/YuNet models.
 Re-run it if setup reports missing dependencies.
 
-You need [Claude Code for Windows](https://docs.claude.com/en/docs/claude-code/setup) (it uses Git for Windows,
-which also gives you `git` for the clone).
+Claude Code is required for the interactive skills. The standalone CLI below does not require Claude Code.
+Git for Windows is needed to clone the repository.
 
 ## Use it
 
@@ -83,7 +83,7 @@ Clips land in `GTA6-Clips` in your user folder (`C:\Users\<you>\GTA6-Clips`). Ea
 | 1. Get the stream | Downloads the audio only (4 h ≈ 220 MB) | Records 1-minute pieces, keeps the last 15 min | yt-dlp, FFmpeg |
 | 2. Speech to text | Whole stream in one go | Each minute as it lands | FFmpeg, faster-whisper |
 | 3. Find the hype | Loud seconds + YouTube replay chat speed | Loud seconds + live Twitch chat speed | FFmpeg, chat |
-| 4. Pick the moments | Claude reads 12-min chunks, best 3 scoring 7+ | Claude reads each 5-min window, any 7.5+ | Claude Code |
+| 4. Pick the moments | Claude Code or the standalone Ollama CLI selects moments | Claude reads each 5-min window, any 7.5+ | Claude Code or Ollama |
 | 5. Make the clip | Downloads only those minutes | Cuts from the pieces already on your PC | OpenCV, faster-whisper, Pillow, FFmpeg |
 
 Chat is counted, never read: 10-second buckets, a spike is 8+ messages at 2.5x the normal rate. Loud means 9 dB above the streamer's own normal. The facecam is found by looking for a face, and box edges, that stay still while the gameplay moves.
@@ -98,6 +98,24 @@ Picking (step 4) is the only part that uses AI. Everything else runs on your PC.
 4. Same prompts as above.
 
 The free model is slower and its picks are rougher than Claude's. Expect some back and forth.
+
+## Run a URL without Claude Code
+
+Complete setup once, install [Ollama](https://ollama.com/download), and pull a model (16 GB RAM: `qwen3.5:9b`;
+32 GB or more: `qwen3.5:27b`). Keep the Ollama app running, or start its server with `ollama serve`.
+From the repository folder, run:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\skills\gta6-clipper\scripts\setup.ps1
+ollama pull qwen3.5:9b
+.\skills\gta6-clipper\.venv\Scripts\python.exe .\skills\gta6-clipper\scripts\gta6clip.py clip-url "https://youtube.com/watch?v=..."
+```
+
+`clip-url` detects whether the URL is a finished stream or currently live. For a finished stream it downloads
+and transcribes the stream, asks the local model to select moments, and renders up to three clips. For a live
+stream it keeps recording and scoring new windows until the stream ends; press Ctrl+C to stop recording and
+finish the last window. No Claude Code account or cloud API key is used. Change the model with
+`--model qwen3.5:27b`; use `--cookies firefox` for streams that require browser login.
 
 ## Good to know
 

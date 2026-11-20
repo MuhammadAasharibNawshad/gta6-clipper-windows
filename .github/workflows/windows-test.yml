@@ -20,4 +20,5 @@ jobs:
         shell: powershell
         run: |
           $env:GTA6_SKILLS_DIR = "$env:USERPROFILE\.claude\skills"
+          & "$env:USERPROFILE\.claude\skills\gta6-clipper\.venv\Scripts\python.exe" tests\test_ollama_auto.py
           & "$env:USERPROFILE\.claude\skills\gta6-clipper\.venv\Scripts\python.exe" tests\smoke.py

@@ -15,6 +15,11 @@ models and render code). The difference: nothing gets downloaded twice. The live
 If it says "Set up the GTA 6 clipper first", run
 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$V/scripts/setup.ps1"`.
 
+For a fully automatic live run without Claude Code, use
+`"$V/.venv/Scripts/python.exe" "$L/scripts/live.py" clip-url "https://www.twitch.tv/streamer"` with Ollama running locally.
+It selects and renders each qualifying window until the stream ends; Ctrl+C stops the recorder and finishes
+the last window.
+
 ## 1. Start
 
 `start <url> [<url> ...]`: Twitch channel (`https://www.twitch.tv/kaicenat`), YouTube live link, or Kick.

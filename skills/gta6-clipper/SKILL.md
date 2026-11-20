@@ -7,7 +7,8 @@ description: GTA 6 Clipper. Turns GTA 6 streams into ready-to-post vertical clip
 
 Stream link (YouTube, Twitch, Kick) or nothing -> 3 ready-to-post 1080x1920 clips per stream.
 Everything except the picking runs on this PC. The picking is done by YOU (this Claude Code session),
-so it runs on the user's Claude subscription, or on a local model through Ollama. No API keys.
+so it runs on the user's Claude subscription, or on a local model through Ollama. No API keys. For a fully
+standalone run without Claude Code, use `gta6clip.py clip-url <url>` with Ollama; see `README.md`.
 
 `S` = this skill's folder (usually `~/.claude/skills/gta6-clipper`, i.e. `C:\Users\<you>\.claude\skills\gta6-clipper`).
 Always run Python through the skill's venv: `"$S/.venv/Scripts/python.exe" "$S/scripts/gta6clip.py" ...`.
